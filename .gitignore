@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+# Python
+*.pyc
+*.whl
+*.egg-info/
+**/pip-wheel-metadata/
+
+# IDE
+.idea/
+.vscode/
+
+# Bazel
+bazel-*
+bazel_*
+*.bazel.lock

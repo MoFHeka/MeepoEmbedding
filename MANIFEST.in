@@ -1,0 +1,2 @@
+recursive-include meepo_embedding *.so
+include docs/*
