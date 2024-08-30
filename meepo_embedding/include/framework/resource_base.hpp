@@ -19,9 +19,9 @@ limitations under the License.
 #ifndef MEEPO_EMBEDDING_FRAMEWORK_RESOURCE_BASE_H_
 #define MEEPO_EMBEDDING_FRAMEWORK_RESOURCE_BASE_H_
 
-#include "meepo_embedding/include/common/strings.h"
-
 #include <string>
+
+#include "meepo_embedding/include/common/strings.h"
 
 namespace meepo_embedding {
 

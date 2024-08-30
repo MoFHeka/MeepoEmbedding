@@ -24,8 +24,8 @@ limitations under the License.
 #include <memory>
 #include <string>
 
-#include "meepo_embedding/include/common/device_base.h"
 #include "meepo_embedding/include/common/data_type.h"
+#include "meepo_embedding/include/common/device_base.h"
 #include "meepo_embedding/include/storage/register/storage_interface.hpp"
 #include "meepo_embedding/include/storage/register/storage_registration.hpp"
 

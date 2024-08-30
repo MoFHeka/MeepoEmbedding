@@ -223,7 +223,7 @@ struct MemoryResourceImpl<R> {
     return MemoryResourceType::GPU_PINNED;
   }
 
-  bool AllowRetryOnFailure() const {return true};
+  bool AllowRetryOnFailure() const { return true };
 };
 
 // CPU STD
@@ -248,7 +248,7 @@ struct MemoryResourceImpl<R> {
 
   MemoryResourceType GetMemoryType() const { return MemoryResourceType::HOST; }
 
-  bool AllowRetryOnFailure() const {return true};
+  bool AllowRetryOnFailure() const { return true };
 };
 
 template <typename R>
@@ -259,7 +259,7 @@ struct MemoryResourceImpl<R> {
 
   MemoryResourceType GetMemoryType() const { return MemoryResourceType::HOST; }
 
-  bool AllowRetryOnFailure() const {return true};
+  bool AllowRetryOnFailure() const { return true };
 };
 
 // Runtime statistics collected by an allocator. Exactly the same as

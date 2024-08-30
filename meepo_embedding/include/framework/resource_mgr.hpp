@@ -264,8 +264,8 @@ class StepContainer {
   // has to be unique.
   // cleanup: callback to delete a container of this name.
   // prefix: optional string prefix to disambiguate step containers.
-  StepContainer(const int64_t step_id,
-                std::function<void(const std::string&)> cleanup)
+  StepContainer(
+    const int64_t step_id, std::function<void(const std::string&)> cleanup)
     : step_id_(step_id),
       container_(strings::StrCat("__per_step_", step_id)),
       cleanup_(cleanup),

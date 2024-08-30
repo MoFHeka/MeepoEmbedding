@@ -18,9 +18,9 @@ limitations under the License.
 #ifndef MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
 #define MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace meepo_embedding {
 struct RankInfo {
@@ -29,15 +29,14 @@ struct RankInfo {
 };
 
 class RendezvousAgent {
-public:
-  virtual RendezvousAgent* create(
-    int tensor_parallel,
-    int data_parallel,
-    const std::vector<RankInfo>& rank_infos,
-    int rank) = 0;
+ public:
+  virtual RendezvousAgent* create(int tensor_parallel,
+                                  int data_parallel,
+                                  const std::vector<RankInfo>& rank_infos,
+                                  int rank) = 0;
   virtual int getRank() const = 0;
   virtual ~Rendezvous() {}
 };
 
-} // namespace meepo_embedding
-#endif //MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
+}  // namespace meepo_embedding
+#endif  // MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP

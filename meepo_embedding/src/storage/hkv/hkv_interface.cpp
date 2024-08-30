@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include "meepo_embedding/include/storage/register/storage_interface.hpp"
-
 #include "merlin/allocator.cuh"
 #include "merlin/types.cuh"
 #include "merlin/utils.cuh"
