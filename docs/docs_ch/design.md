@@ -21,7 +21,7 @@ horovod的 ring all2all 实现合适dense tensor东部，但对于sparse tensor�
     这个设计好处是复用原生优化器。不用为每个框架都写优化器。Tensor Agent接收优化器的梯度，然后调用Framework API进行update.
     有待研究的详细设计问题：TF的RegisterGradient能否对lookup 的op 注册，从而获得gradient以避免将gradient copy到shadow的这个中间步骤
   - Framework API, 提供后端 c++ API 的python封装, 包括 lookup, upsert, export, import等
-- Batch Container, 系统中控模块，管理batch和minibatch的训练(forward lookup 和 backward update)
+- Step Container, 系统中控模块，管理batch和minibatch的训练(forward lookup 和 backward update)
   - Inputs ids: 每个batch/minibatch的输入ids, 因为shadow只有index，梯度update和累积的时候需要根据 ids里对应index的key进行update.
   - 系统其他模块的指针, 包括 Resource Manager, Collective communication, Rendezvous, Storage backend, Execution pool等
 - 系统核心组件

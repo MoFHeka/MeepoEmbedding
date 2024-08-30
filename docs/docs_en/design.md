@@ -17,7 +17,7 @@ Address the core issues of training and inference for large-scale embeddings, in
     - Tensor Train Agent, which adapts the training framework's forward lookup API and the backward optimizer's gradient update, similar to TFRA's shadow. This design reuses the native optimizer. There is no need to write a specific optimizer for each framework. The Tensor Agent receives gradients from the optimizer, then calls the Framework API to perform updates.
         - Research question for detailed design: Whether TensorFlow's RegisterGradient could be used to register for the lookup operation, thereby obtaining the gradient and avoiding the intermediate step of copying the gradient to the shadow.
     - Framework API, providing a Python wrapper for backend C++ APIs, including lookup, upsert, export, import, etc.
-- Batch Container, the system control module, manages training batches and minibatches (forward lookup and backward update)
+- Step Container, the system control module, manages training batches and minibatches (forward lookup and backward update)
     - Input ids: IDs for each batch/minibatch input, necessary because the shadow only indexes, and gradients are updated and accumulated based on the corresponding index keys in the ids.
     - Pointers to other system modules, including Resource Manager, Collective Communication, Rendezvous, Storage Backend, Execution Pool, etc.
 - Core System Components
