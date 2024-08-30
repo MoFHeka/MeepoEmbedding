@@ -45,3 +45,6 @@
 bazel-*
 bazel_*
 *.bazel.lock
+
+# intellij
+.DS_Store
