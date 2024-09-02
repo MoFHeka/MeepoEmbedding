@@ -45,7 +45,7 @@ class MeepoEmbeddingContext {
   // The Params struct is passed in to initialize an MeepoEmbeddingContext,
   // and must outlive the MeepoEmbeddingContext.
   struct Params {
-    Params() : stream_ctx_(new nvexec::stream_context()){};
+    Params() : stream_ctx_(new nvexec::stream_context()) {};
     ~Params() { delete stream_ctx_; };
 
     // The step being executed.

@@ -86,10 +86,10 @@ struct InitOnStartupMarker {
 //
 // The parens are necessary to hide the ',' from the preprocessor; it could
 // otherwise act as a macro argument separator.
-#define ME_INIT_ON_STARTUP_IF(cond)                       \
-  (::std::integral_constant<bool, !(cond)>::value)        \
-      ? ::meepo_embedding::storage::InitOnStartupMarker{} \
-      : ::meepo_embedding::storage::InitOnStartupMarker {}
+#define ME_INIT_ON_STARTUP_IF(cond)                     \
+  (::std::integral_constant<bool, !(cond)>::value)      \
+    ? ::meepo_embedding::storage::InitOnStartupMarker{} \
+    : ::meepo_embedding::storage::InitOnStartupMarker {}
 
 // Wrapper for generating unique IDs (for 'anonymous' InitOnStartup definitions)
 // using __COUNTER__. The new ID (__COUNTER__ already expanded) is provided as a

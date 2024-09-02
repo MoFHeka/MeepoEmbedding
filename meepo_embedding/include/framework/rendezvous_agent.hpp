@@ -1,4 +1,4 @@
-/* Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2015 The MeepoEmbedding Authors. All Rights Reserved.
 Copyright 2024 The MeepoEmbedding Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,30 +15,28 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
+#ifndef MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
+#define MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
 
-#ifndef MEEPO_EMBEDDING_FRAMEWORK_RESOURCE_BASE_H_
-#define MEEPO_EMBEDDING_FRAMEWORK_RESOURCE_BASE_H_
-
+#include <memory>
 #include <string>
-
-#include "meepo_embedding/include/common/strings.h"
+#include <vector>
 
 namespace meepo_embedding {
+struct RankInfo {
+  std::string ip;
+  int port;
+};
 
-class ResourceBase {
+class RendezvousAgent {
  public:
-  // Returns a debug string for *this.
-  virtual std::string DebugString() const = 0;
-
-  // Returns a name for ref-counting handles.
-  virtual std::string MakeRefCountingHandleName(int64_t resource_id) const {
-    return strings::StrFormat("Resource-{}-at-{}", resource_id, this);
-  }
-
-  // Returns memory used by this resource.
-  virtual int64_t MemoryUsed() const { return 0; }
+  virtual RendezvousAgent* create(int tensor_parallel,
+                                  int data_parallel,
+                                  const std::vector<RankInfo>& rank_infos,
+                                  int rank) = 0;
+  virtual int getRank() const = 0;
+  virtual ~Rendezvous() {}
 };
 
 }  // namespace meepo_embedding
-
-#endif  // MEEPO_EMBEDDING_FRAMEWORK_RESOURCE_BASE_H_
+#endif  // MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP

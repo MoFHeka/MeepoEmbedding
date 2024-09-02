@@ -43,7 +43,7 @@ inline int Log2Floor64(std::uint64_t n) { return std::bit_width(n) - 1; }
 // A retrying wrapper for a memory allocator.
 class AllocatorRetry {
  public:
-  AllocatorRetry(){};
+  AllocatorRetry() {};
 
   // Call 'alloc_func' to obtain memory.  On first call,
   // 'verbose_failure' will be false.  If return value is nullptr,

@@ -24,8 +24,8 @@ limitations under the License.
 
 #include "Eigen/Core"  // from @eigen
 #include "meepo_embedding/include/common/device_base.h"
-#include "meepo_embedding/include/third_party/proxy.h"
 #include "meepo_embedding/include/common/status.h"
+#include "meepo_embedding/include/third_party/proxy.h"
 #include "yaml-cpp/yaml.h"  // from @yaml-cpp
 
 namespace meepo_embedding {

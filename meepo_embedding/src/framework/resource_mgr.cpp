@@ -76,8 +76,7 @@ ResourceMgr::ResourceAndName& ResourceMgr::ResourceAndName::operator=(
   return *this;
 }
 
-ResourceMgr::ResourceMgr()
-  : default_container_("localhost") {}
+ResourceMgr::ResourceMgr() : default_container_("localhost") {}
 
 ResourceMgr::ResourceMgr(const std::string& default_container)
   : default_container_(default_container) {}

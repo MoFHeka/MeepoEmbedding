@@ -1,0 +1,27 @@
+name: GitHub CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  clang-format:
+    name: Clang C++ code format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install clang-format
+        run: sudo apt-get install clang-format
+      - name: Check formatting
+        run: |
+          find . -iname '*.cpp' -o -iname '*.hpp' | xargs clang-format -style=file -output-replacements-xml | grep "<replacement " > /dev/null
+          if [ $? -ne 1 ]; then
+            echo "Code style issues found."
+            exit 1
+          fi      - name: Run type check

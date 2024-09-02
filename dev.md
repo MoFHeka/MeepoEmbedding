@@ -1,0 +1,3 @@
+- check for coding style
+  - `brew install clang-format` 
+  - `find . -iname '*.cpp' -o -iname '*.hpp' | xargs clang-format -style=file -i`
