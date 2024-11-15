@@ -18,25 +18,31 @@ limitations under the License.
 #ifndef MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
 #define MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
 
-#include <memory>
-#include <string>
 #include <vector>
+#include <string>
+#include <memory>
+#include <yaml-cpp/yaml.h>
 
 namespace meepo_embedding {
 struct RankInfo {
-  std::string ip;
-  int port;
+    std::string ip;
+    int port;
 };
+
+struct Topology {
+  int num_nodes;
+  int gpu_per_node;
+  float bandwidth_within_node;
+  float bandwidth_between_nodes;
+};
+
 
 class RendezvousAgent {
- public:
-  virtual RendezvousAgent* create(int tensor_parallel,
-                                  int data_parallel,
-                                  const std::vector<RankInfo>& rank_infos,
-                                  int rank) = 0;
-  virtual int getRank() const = 0;
-  virtual ~Rendezvous() {}
+public:
+    virtual RendezvousAgent* create(const YAML::Node* config, int rank) = 0;
+    virtual int getRank() const = 0;
+    virtual ~Rendezvous() {}
 };
 
-}  // namespace meepo_embedding
-#endif  // MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
+} // namespace meepo_embedding
+#endif //MEEPOEMBEDDING_RENDEZVOUS_AGENT_HPP
