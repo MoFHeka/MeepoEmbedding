@@ -15,10 +15,19 @@ limitations under the License.
 
 #include "meepo_embedding/include/common/strings.h"
 
+#include <inttypes.h>
+
+#include <algorithm>
+#include <cstdio>
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <type_traits>
+#include <utility>
+
+#include <magic_enum.hpp>
 
 #include "meepo_embedding/include/common/logger.h"
 #include "meepo_embedding/include/common/macros.h"
@@ -57,8 +66,8 @@ std::string StrFormat(std::string_view rt_fmt_str, Args&&... args) {
 
 void ReserveOSS(std::ostringstream& oss, std::size_t size) {
   std::stringbuf* buf = oss.rdbuf();
-  std::string* str = const_cast<std::string*>(&buf->str());
-  str->reserve(size);
+  std::string&& str = buf->str();
+  str.reserve(size);
 }
 
 template <typename T>
@@ -71,7 +80,16 @@ void StrAppend(std::string& buffer, Args&&... args) {
   std::ostringstream oss;
   constexpr const size_t count = sizeof...(Args);
   ReserveOSS(oss, count * 8);
-  oss.rdbuf append_to_stream(oss, args...);
+  AppendToOSS(oss, args...);
+  buffer += oss.str();
+}
+
+void StrAppend(
+  std::string& buffer, std::initializer_list<std::string_view> views) {
+  std::ostringstream oss;
+  for (const auto& view : views) {
+    oss << view;
+  }
   buffer += oss.str();
 }
 
@@ -98,8 +116,8 @@ std::string HumanReadableNumBytes(std::int64_t num_bytes) {
   if (num_bytes < 1024) {
     // No fractions for bytes.
     char buf[8];  // Longest possible string is '-XXXXB'
-    snprintf(buf, sizeof(buf), "%s%lldB", neg_str,
-             static_cast<long long>(num_bytes));
+    snprintf(buf, sizeof(buf), "%s%" PRId64 "B", neg_str,
+             static_cast<int64_t>(num_bytes));
     return std::string(buf);
   }
 
@@ -119,41 +137,95 @@ std::string HumanReadableNumBytes(std::int64_t num_bytes) {
   return std::string(buf);
 }
 
-const std::string CreateStorageFactoryKey(const std::string& device,
-                                          const std::string& key_dtype,
-                                          const std::string& value_dtype,
-                                          const std::string& score_dtype,
-                                          const std::string& cls_name) {
-  std::string key = device + "_" + key_dtype + "_" + value_dtype + "_"
-                    + score_dtype + "_" + cls_name;
-  std::transform(key.begin(), key.end(), key.begin(),
-                 [](unsigned char c) { return std::toupper(c); });
-  return std::move(key);
+template <typename T>
+std::size_t TotalStringLength(std::initializer_list<T> views) {
+  std::size_t len = 0;
+  for (const auto& view : views) {
+    len += view.size();
+  }
+  return len;
 }
 
-const std::string CreateStorageFactoryKey(const DeviceType& device_type,
-                                          const DataType&& key_dtype,
-                                          const DataType&& value_dtype,
-                                          const DataType&& score_dtype,
-                                          const std::string& cls_name) {
-  auto cls_name_str = std::string(cls_name);
-  std::transform(cls_name_str.begin(), cls_name_str.end(), cls_name_str.begin(),
+const std::string CreateStorageFactoryKey(const std::string_view device,
+                                          const std::string_view key_dtype,
+                                          const std::string_view value_dtype,
+                                          const std::string_view score_dtype,
+                                          const std::string_view cls_name) {
+  std::string key;
+  const auto len = TotalStringLength<const std::string_view>(
+                     {device, key_dtype, value_dtype, score_dtype, cls_name})
+                   + 4;
+  key.reserve(len);
+  key.append(device);
+  key.push_back('_');
+  key.append(key_dtype);
+  key.push_back('_');
+  key.append(value_dtype);
+  key.push_back('_');
+  key.append(score_dtype);
+  key.push_back('_');
+  key.append(cls_name);
+
+  std::transform(key.begin(), key.end(), key.begin(),
                  [](unsigned char c) { return std::toupper(c); });
-  auto device_str = magic_enum::enum_name(device_type);
-  auto ktype_str = magic_enum::enum_name(key_dtype);
-  auto vtype_str = magic_enum::enum_name(value_dtype);
-  auto stype_str = magic_enum::enum_name(score_dtype);
-  std::string key(cls_name);
-  key.reserve(key.size() + 32);
-  key.insert(0, "_");
-  key.insert(0, stype_str);
-  key.insert(0, "_");
-  key.insert(0, vtype_str);
-  key.insert(0, "_");
-  key.insert(0, ktype_str);
-  key.insert(0, "_");
-  key.insert(0, device_str);
-  return std::move(key);
+  return key;
 }
+
+const std::string CreateStorageFactoryKey(const DeviceType device_type,
+                                          const DataType key_dtype,
+                                          const DataType value_dtype,
+                                          const DataType score_dtype,
+                                          const std::string_view cls_name) {
+  auto device_str = ::magic_enum::enum_name(device_type);
+  auto ktype_str = ::magic_enum::enum_name(key_dtype);
+  auto vtype_str = ::magic_enum::enum_name(value_dtype);
+  auto stype_str = ::magic_enum::enum_name(score_dtype);
+  std::string key;
+  const auto len = TotalStringLength<std::string_view>(
+                     {device_str, ktype_str, vtype_str, stype_str, cls_name})
+                   + 4;
+  key.reserve(len);
+  key.append(device_str);
+  key.push_back('_');
+  key.append(ktype_str);
+  key.push_back('_');
+  key.append(vtype_str);
+  key.push_back('_');
+  key.append(stype_str);
+  key.push_back('_');
+  key.append(cls_name);
+  std::transform(key.begin(), key.end(), key.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  return key;
+}
+
+const std::string CreateStorageFactoryKey(const std::string_view device,
+                                          const std::string_view cls_name) {
+  std::string key;
+  const auto len = TotalStringLength<std::string_view>({device, cls_name}) + 1;
+  key.reserve(len);
+  key.append(device);
+  key.push_back('_');
+  key.append(cls_name);
+  std::transform(key.begin(), key.end(), key.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  return key;
+}
+
+const std::string CreateStorageFactoryKey(const DeviceType device_type,
+                                          const std::string_view cls_name) {
+  auto device_str = magic_enum::enum_name(device_type);
+  std::string key;
+  const auto len =
+    TotalStringLength<std::string_view>({device_str, cls_name}) + 1;
+  key.reserve(len);
+  key.append(device_str);
+  key.push_back('_');
+  key.append(cls_name);
+  std::transform(key.begin(), key.end(), key.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  return key;
+}
+
 }  // namespace strings
 }  // namespace meepo_embedding

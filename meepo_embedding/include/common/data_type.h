@@ -18,7 +18,7 @@ limitations under the License.
 #ifndef MEEPO_EMBEDDING_COMMON_DTYPE_H_
 #define MEEPO_EMBEDDING_COMMON_DTYPE_H_
 
-#include "meepo_embedding/include/third_party/magic_enum.hpp"
+#include <magic_enum.hpp>
 
 namespace meepo_embedding {
 enum class DataType {
@@ -44,9 +44,7 @@ enum class DataType {
   // ME_FLOAT8_E4M3FNUZ = 18,
   // ME_FLOAT8_E4M3B11FNUZ = 19,
   // ME_FLOAT8_E5M2FNUZ = 20,
-  };
-
-using namespace magic_enum::bitwise_operators;
+};
 
 }  // namespace meepo_embedding
 

@@ -1,6 +1,6 @@
 """Proxy: Next Generation Polymorphism in C++."""
 
-load("//:repositories.bzl", "proxy_repo")
+load("//third_party/proxy:repositories.bzl", "proxy_repo")
 
 def _proxy_dep_impl(_ctx):
     proxy_repo()

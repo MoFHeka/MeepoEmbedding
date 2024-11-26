@@ -8,7 +8,7 @@ ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2
 DerivePointerAlignment: true
 ExperimentalAutoDetectBinPacking: true
-IncludeBlocks: Regroup
+IncludeBlocks: Preserve
 Standard: c++20
 StatementMacros: [
   'STDEXEC_MEMFN_DECL(X)=X',

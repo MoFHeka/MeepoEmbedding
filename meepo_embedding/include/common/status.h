@@ -20,9 +20,10 @@ limitations under the License.
 #define MEEPO_EMBEDDING_COMMON_STATUS_H_
 
 #include <map>
+#include <string>
 #include <system_error>
 
-#include "meepo_embedding/include/third_party/magic_enum.hpp"
+#include <magic_enum.hpp>
 
 namespace meepo_embedding {
 enum class Status {
@@ -52,24 +53,24 @@ class MEErrorCategory : public std::error_category {
 
   std::string message(int errc) const override {
     static const std::map<int, std::string> messages = {
-        {static_cast<int>(Status::OK), "OK"},
-        {static_cast<int>(Status::ABORTED), "Aborted"},
-        {static_cast<int>(Status::ALREADY_EXISTS), "Already Exists"},
-        {static_cast<int>(Status::CANCELLED), "Cancelled"},
-        {static_cast<int>(Status::CONN_ERROR), "Connection Error"},
-        {static_cast<int>(Status::DATA_LOSS), "Data Loss"},
-        {static_cast<int>(Status::DEADLINE_EXCEEDED), "Deadline Exceeded"},
-        {static_cast<int>(Status::FAILED_PRECONDITION), "Failed Precondition"},
-        {static_cast<int>(Status::INTERNAL), "Internal Error"},
-        {static_cast<int>(Status::INVALID_ARGUMENT), "Invalid Argument"},
-        {static_cast<int>(Status::NOT_FOUND), "Not Found"},
-        {static_cast<int>(Status::OUT_OF_RANGE), "Out of Range"},
-        {static_cast<int>(Status::PERMISSION_DENIED), "Permission Denied"},
-        {static_cast<int>(Status::RESOURCE_EXHAUSTED), "Resource Exhausted"},
-        {static_cast<int>(Status::UNAUTHENTICATED), "Unauthenticated"},
-        {static_cast<int>(Status::UNAVAILABLE), "Unavailable"},
-        {static_cast<int>(Status::UNIMPLEMENTED), "Unimplemented"},
-        {static_cast<int>(Status::UNKNOWN), "Unknown Error"}};
+      {static_cast<int>(Status::OK), "OK"},
+      {static_cast<int>(Status::ABORTED), "Aborted"},
+      {static_cast<int>(Status::ALREADY_EXISTS), "Already Exists"},
+      {static_cast<int>(Status::CANCELLED), "Cancelled"},
+      {static_cast<int>(Status::CONN_ERROR), "Connection Error"},
+      {static_cast<int>(Status::DATA_LOSS), "Data Loss"},
+      {static_cast<int>(Status::DEADLINE_EXCEEDED), "Deadline Exceeded"},
+      {static_cast<int>(Status::FAILED_PRECONDITION), "Failed Precondition"},
+      {static_cast<int>(Status::INTERNAL), "Internal Error"},
+      {static_cast<int>(Status::INVALID_ARGUMENT), "Invalid Argument"},
+      {static_cast<int>(Status::NOT_FOUND), "Not Found"},
+      {static_cast<int>(Status::OUT_OF_RANGE), "Out of Range"},
+      {static_cast<int>(Status::PERMISSION_DENIED), "Permission Denied"},
+      {static_cast<int>(Status::RESOURCE_EXHAUSTED), "Resource Exhausted"},
+      {static_cast<int>(Status::UNAUTHENTICATED), "Unauthenticated"},
+      {static_cast<int>(Status::UNAVAILABLE), "Unavailable"},
+      {static_cast<int>(Status::UNIMPLEMENTED), "Unimplemented"},
+      {static_cast<int>(Status::UNKNOWN), "Unknown Error"}};
 
     auto it = messages.find(errc);
     if (it != messages.end()) {
@@ -90,8 +91,6 @@ class MEErrorCategory : public std::error_category {
 inline std::error_code make_error_code(Status e) {
   return {static_cast<int>(e), MEErrorCategory::GetInstance()};
 }
-
-using namespace magic_enum::bitwise_operators;
 
 }  // namespace meepo_embedding
 

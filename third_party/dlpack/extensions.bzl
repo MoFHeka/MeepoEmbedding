@@ -1,6 +1,6 @@
 """DLPack is a protocol for sharing arrays between deep learning frameworks."""
 
-load("//:repositories.bzl", "dlpack_repo")
+load("//third_party/dlpack:repositories.bzl", "dlpack_repo")
 
 def _dlpack_dep_impl(_ctx):
     dlpack_repo()

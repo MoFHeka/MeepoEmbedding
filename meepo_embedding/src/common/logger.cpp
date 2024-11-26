@@ -26,7 +26,7 @@ namespace meepo_embedding {
 
 static quill::Logger* default_logger = nullptr;
 
-void InitDefaultLogger(const bool verbose = false) {
+void InitDefaultLogger(const bool verbose) {
   if (default_logger) {
     return;
   }

@@ -18,19 +18,24 @@ limitations under the License.
 #ifndef MEEPO_EMBEDDING_COMMON_TENSOR_H_
 #define MEEPO_EMBEDDING_COMMON_TENSOR_H_
 
+#include <dlpack/dlpack.h>  // from @dlpack
+
 #include <concepts>
 #include <cstdint>
-#include <stdfloat>
 #include <type_traits>
 
-#include "meepo_embedding/include/third_party/dlpack.h"
+#if __STDCPP_FLOAT16_T__ == 1 or __STDCPP_BFLOAT16_T__ == 1
+#include <stdfloat>
+#endif
 
 #if __STDCPP_FLOAT16_T__ != 1
-#warning "16-bit standard float type required"
+#warning "16-bit standard float type required, use cuda_fp16.h instead."
+#include <cuda_fp16.h>
 #endif
 
 #if __STDCPP_BFLOAT16_T__ != 1
-#warning "16-bit standard bfloat type required"
+#warning "16-bit standard bfloat type required, use cuda_bf16.h instead."
+#include <cuda_bf16.h>
 #endif
 
 namespace meepo_embedding {
@@ -46,7 +51,11 @@ struct Tensor<DType> : DLTensor {
 };
 
 template <typename DType>
-  requires std::integral<DType> && std::is_unsigned_v<DType>
+concept ValidUintType = std::integral<DType> && std::is_unsigned_v<DType>
+                        && !std::same_as<DType, bool>;
+
+template <typename DType>
+  requires ValidUintType<DType>
 struct Tensor<DType> : DLTensor {
   static constexpr DLDataType dtype{DLDataTypeCode::kDLUInt, sizeof(DType) * 8,
                                     1};
@@ -61,6 +70,12 @@ struct Tensor<DType> : DLTensor {
   DType std_dtype;
 };
 
+template <typename DType>
+concept ValidHalfType =
+  !std::floating_point<DType> && !std::integral<DType>
+  && !std::same_as<DType, bool> && !std::same_as<DType, std::nullptr_t>
+  && sizeof(DType) == 2;
+
 #if __STDCPP_FLOAT16_T__ == 1
 template <typename DType>
   requires std::floating_point<DType> && std::same_as<DType, std::float16_t>
@@ -72,14 +87,13 @@ struct Tensor<DType> : DLTensor {
 typedef std::float16_t me_float16_t;
 #else
 template <typename DType>
-  requires(!std::floating_point<DType>) && (!std::integral<DType>)
-          && (!std::same_as<DType, std::nullptr_t>) && (sizeof(DType) == 2)
+  requires ValidHalfType<DType>
 struct Tensor<DType> : DLTensor {
   static constexpr DLDataType dtype{DLDataTypeCode::kDLFloat, sizeof(DType) * 8,
                                     1};
   DType std_dtype;
 };
-typedef std::nullptr_t me_float16_t;
+typedef half me_float16_t;
 #endif
 
 #if __STDCPP_BFLOAT16_T__ == 1
@@ -93,14 +107,13 @@ struct Tensor<DType> : DLTensor {
 typedef std::bfloat16_t me_bfloat16_t;
 #else
 template <typename DType>
-  requires(!std::floating_point<DType>) && (!std::integral<DType>)
-          && (!std::same_as<DType, std::nullptr_t>) && (sizeof(DType) == 2)
+  requires ValidHalfType<DType>
 struct Tensor<DType> : DLTensor {
   static constexpr DLDataType dtype{DLDataTypeCode::kDLBfloat,
                                     sizeof(DType) * 8, 1};
   DType std_dtype;
 };
-typedef std::nullptr_t me_bfloat16_t;
+typedef __nv_bfloat16 me_bfloat16_t;
 #endif
 
 template <typename DType>

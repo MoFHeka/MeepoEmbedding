@@ -18,6 +18,9 @@ limitations under the License.
 #ifndef MEEPO_EMBEDDING_STORAGE_INTERFACE_HPP_
 #define MEEPO_EMBEDDING_STORAGE_INTERFACE_HPP_
 
+#include <proxy.h>          // from @proxy
+#include <yaml-cpp/yaml.h>  // from @yaml-cpp
+
 #include <expected>
 #include <string>
 #include <system_error>
@@ -25,8 +28,6 @@ limitations under the License.
 #include "meepo_embedding/include/common/device_base.h"
 #include "meepo_embedding/include/common/status.h"
 #include "meepo_embedding/include/common/tensor.h"
-#include "meepo_embedding/include/third_party/proxy.h"
-#include "yaml-cpp/yaml.h"  // from @yaml-cpp
 
 namespace meepo_embedding {
 namespace storage {
@@ -95,46 +96,44 @@ PRO_DEF_WEAK_DISPATCH(WeakMemReserve, MemReserve, NotImplemented);
 PRO_DEF_WEAK_DISPATCH(WeakMemSave, MemSave, NotImplemented);
 PRO_DEF_WEAK_DISPATCH(WeakMemLoad, MemLoad, NotImplemented);
 
-#define ExpandFindValueType(key_dtype, value_dtype)                     \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values)
+#define ExpandFindValueType(key_dtype, value_dtype)               \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<value_dtype> &values)
 
-#define ExpandFindWithMissType(key_dtype, value_dtype)                   \
-  std::error_code(const std::size_t n_keys,                              \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,  \
-                  const meepo_embedding::Tensor<value_dtype> *values,    \
-                  const meepo_embedding::Tensor<key_dtype> *missed_keys, \
-                  const meepo_embedding::Tensor<int> *missed_indices,    \
-                  const int *missed_size)
+#define ExpandFindWithMissType(key_dtype, value_dtype)                        \
+  std::error_code(                                                            \
+    const std::size_t n_keys, const meepo_embedding::Tensor<key_dtype> &keys, \
+    meepo_embedding::Tensor<value_dtype> &values,                             \
+    meepo_embedding::Tensor<key_dtype> &missed_keys,                          \
+    meepo_embedding::Tensor<int> &missed_indices, int &missed_size)
 
-#define ExpandFindWithMissScoreType(key_dtype, value_dtype, score_type)  \
-  std::error_code(const std::size_t n_keys,                              \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,  \
-                  const meepo_embedding::Tensor<value_dtype> *values,    \
-                  const meepo_embedding::Tensor<key_dtype> *missed_keys, \
-                  const meepo_embedding::Tensor<int> *missed_indices,    \
-                  const int *missed_size,                                \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandFindWithMissScoreType(key_dtype, value_dtype, score_type)       \
+  std::error_code(                                                            \
+    const std::size_t n_keys, const meepo_embedding::Tensor<key_dtype> &keys, \
+    meepo_embedding::Tensor<value_dtype> &values,                             \
+    meepo_embedding::Tensor<key_dtype> &missed_keys,                          \
+    meepo_embedding::Tensor<int> &missed_indices, int &missed_size,           \
+    meepo_embedding::Tensor<score_type> &scores)
 
-#define ExpandFindWithExistType(key_dtype, value_dtype)                 \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<bool> *exists)
+#define ExpandFindWithExistType(key_dtype, value_dtype)           \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<value_dtype> &values,   \
+                  meepo_embedding::Tensor<bool> &exists)
 
-#define ExpandFindWithScoreType(key_dtype, value_dtype, score_type)     \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandFindWithScoreType(key_dtype, value_dtype, score_type) \
+  std::error_code(const std::size_t n_keys,                         \
+                  const meepo_embedding::Tensor<key_dtype> &keys,   \
+                  meepo_embedding::Tensor<value_dtype> &values,     \
+                  meepo_embedding::Tensor<score_type> &scores)
 
 #define ExpandFindWithScoreExistType(key_dtype, value_dtype, score_type) \
   std::error_code(const std::size_t n_keys,                              \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,  \
-                  const meepo_embedding::Tensor<value_dtype> *values,    \
-                  const meepo_embedding::Tensor<bool> *exists,           \
-                  const meepo_embedding::Tensor<score_type> *scores)
+                  const meepo_embedding::Tensor<key_dtype> &keys,        \
+                  meepo_embedding::Tensor<value_dtype> &values,          \
+                  meepo_embedding::Tensor<bool> &exists,                 \
+                  meepo_embedding::Tensor<score_type> &scores)
 
 #define ExpandFindType(key_dtype, value_dtype, score_type)           \
   ExpandFindValueType(key_dtype, value_dtype),                       \
@@ -144,30 +143,30 @@ PRO_DEF_WEAK_DISPATCH(WeakMemLoad, MemLoad, NotImplemented);
     ExpandFindWithScoreType(key_dtype, value_dtype, score_type),     \
     ExpandFindWithScoreExistType(key_dtype, value_dtype, score_type)
 
-#define ExpandFindOrInsertValueType(key_dtype, value_dtype)             \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values)
+#define ExpandFindOrInsertValueType(key_dtype, value_dtype)       \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<value_dtype> &values)
 
 #define ExpandFindOrInsertWithScoreType(key_dtype, value_dtype, score_type) \
   std::error_code(const std::size_t n_keys,                                 \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,     \
-                  const meepo_embedding::Tensor<value_dtype> *values,       \
-                  const meepo_embedding::Tensor<score_type> *scores)
+                  const meepo_embedding::Tensor<key_dtype> &keys,           \
+                  meepo_embedding::Tensor<value_dtype> &values,             \
+                  meepo_embedding::Tensor<score_type> &scores)
 
-#define ExpandFindOrInsertWithExistType(key_dtype, value_dtype)         \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<bool> *exists)
+#define ExpandFindOrInsertWithExistType(key_dtype, value_dtype)   \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<value_dtype> &values,   \
+                  meepo_embedding::Tensor<bool> &exists)
 
-#define ExpandFindOrInsertWithScoreExistType(key_dtype, value_dtype,    \
-                                             score_type)                \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<bool> *exists,          \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandFindOrInsertWithScoreExistType(key_dtype, value_dtype, \
+                                             score_type)             \
+  std::error_code(const std::size_t n_keys,                          \
+                  const meepo_embedding::Tensor<key_dtype> &keys,    \
+                  meepo_embedding::Tensor<value_dtype> &values,      \
+                  meepo_embedding::Tensor<bool> &exists,             \
+                  meepo_embedding::Tensor<score_type> &scores)
 
 #define ExpandFindOrInsertType(key_dtype, value_dtype, score_type)       \
   ExpandFindOrInsertValueType(key_dtype, value_dtype),                   \
@@ -175,182 +174,222 @@ PRO_DEF_WEAK_DISPATCH(WeakMemLoad, MemLoad, NotImplemented);
     ExpandFindOrInsertWithExistType(key_dtype, value_dtype),             \
     ExpandFindOrInsertWithScoreExistType(key_dtype, value_dtype, score_type)
 
-#define ExpandContainsType(key_dtype)                                   \
+#define ExpandContainsType(key_dtype)                             \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<bool> &exists)
+
+#define ExpandAssignType(key_dtype, value_dtype, score_type)          \
+  std::error_code(const std::size_t n_keys,                           \
+                  const meepo_embedding::Tensor<key_dtype> &keys,     \
+                  const meepo_embedding::Tensor<value_dtype> &values, \
+                  const meepo_embedding::Tensor<score_type> &scores)
+
+#define ExpandAssignValuesType(key_dtype, value_dtype)            \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  const meepo_embedding::Tensor<value_dtype> &values)
+
+#define ExpandAssignScoresType(key_dtype, score_type)             \
+  std::error_code(const std::size_t n_keys,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  const meepo_embedding::Tensor<score_type> &scores)
+
+#define ExpandInsertAndEvictType(key_dtype, value_dtype, score_type)    \
   std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<bool> *exists)
+                  const meepo_embedding::Tensor<key_dtype> &keys,       \
+                  const meepo_embedding::Tensor<value_dtype> &values,   \
+                  const meepo_embedding::Tensor<score_type> &scores,    \
+                  meepo_embedding::Tensor<key_dtype> &evicted_keys,     \
+                  meepo_embedding::Tensor<value_dtype> &evicted_values, \
+                  meepo_embedding::Tensor<score_type> &evicted_scores,  \
+                  std::size_t &evicted_size)
 
-#define ExpandAssignType(key_dtype, value_dtype, score_type)            \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandInsertOrAssignType(key_dtype, value_dtype, score_type)  \
+  std::error_code(const std::size_t n_keys,                           \
+                  const meepo_embedding::Tensor<key_dtype> &keys,     \
+                  const meepo_embedding::Tensor<value_dtype> &values, \
+                  const meepo_embedding::Tensor<score_type> &scores)
 
-#define ExpandAssignValuesType(key_dtype, value_dtype)                  \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values)
-
-#define ExpandAssignScoresType(key_dtype, score_type)                   \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<score_type> *scores)
-
-#define ExpandInsertAndEvictType(key_dtype, value_dtype, score_type)          \
-  std::error_code(const std::size_t n_keys,                                   \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,       \
-                  const meepo_embedding::Tensor<value_dtype> *values,         \
-                  const meepo_embedding::Tensor<score_type> *scores,          \
-                  const meepo_embedding::Tensor<key_dtype> *evicted_keys,     \
-                  const meepo_embedding::Tensor<value_dtype> *evicted_values, \
-                  const meepo_embedding::Tensor<score_type> *evicted_scores,  \
-                  const std::size_t *evicted_size)
-
-#define ExpandInsertOrAssignType(key_dtype, value_dtype, score_type)    \
-  std::error_code(const std::size_t n_keys,                             \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<score_type> *scores)
-
-#define ExpandAccumOrAssignType(key_dtype, value_dtype, score_type)            \
-  std::error_code(const std::size_t n_keys,                                    \
-                  const meepo_embedding::Tensor<key_dtype> *const keys,        \
-                  const meepo_embedding::Tensor<value_dtype> *values,          \
-                  const meepo_embedding::Tensor<bool> *const accum_or_assigns, \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandAccumOrAssignType(key_dtype, value_dtype, score_type)      \
+  std::error_code(const std::size_t n_keys,                              \
+                  const meepo_embedding::Tensor<key_dtype> &keys,        \
+                  const meepo_embedding::Tensor<value_dtype> &values,    \
+                  const meepo_embedding::Tensor<bool> &accum_or_assigns, \
+                  const meepo_embedding::Tensor<score_type> &scores)
 
 #define ExpandEraseType(key_dtype)          \
   std::error_code(const std::size_t n_keys, \
-                  const meepo_embedding::Tensor<key_dtype> *const keys)
+                  const meepo_embedding::Tensor<key_dtype> &keys)
 
 #define ExpandEraseIfType(key_dtype, score_dtype) \
   std::error_code(const key_dtype pattern, const score_dtype threshold)
 
-#define ExpandExportBatchType(key_dtype, value_dtype, score_type)       \
-  std::error_code(const std::size_t max_batch_size,                     \
-                  const std::size_t cursor_offset,                      \
-                  const std::size_t *exported_batch_size,               \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandExportBatchType(key_dtype, value_dtype, score_type) \
+  std::error_code(const std::size_t max_export_number,            \
+                  const std::size_t cursor_offset,                \
+                  std::size_t &exported_counter,                  \
+                  const meepo_embedding::Tensor<key_dtype> &keys, \
+                  meepo_embedding::Tensor<value_dtype> &values,   \
+                  meepo_embedding::Tensor<score_type> &scores)
 
-#define ExpandExportBatchIfType(key_dtype, value_dtype, score_type)     \
-  std::error_code(const key_dtype pattern, const score_type threshold,  \
-                  const std::size_t max_batch_size,                     \
-                  const std::size_t cursor_offset,                      \
-                  const std::size_t *exported_batch_size,               \
-                  const meepo_embedding::Tensor<key_dtype> *const keys, \
-                  const meepo_embedding::Tensor<value_dtype> *values,   \
-                  const meepo_embedding::Tensor<score_type> *scores)
+#define ExpandExportBatchIfType(key_dtype, value_dtype, score_type)    \
+  std::error_code(const key_dtype pattern, const score_type threshold, \
+                  const std::size_t max_export_number,                 \
+                  const std::size_t cursor_offset,                     \
+                  std::size_t &exported_counter,                       \
+                  const meepo_embedding::Tensor<key_dtype> &keys,      \
+                  meepo_embedding::Tensor<value_dtype> &values,        \
+                  meepo_embedding::Tensor<score_type> &scores)
 
 // clang-format off
+// NOLINTBEGIN(whitespace/indent_namespace)
 struct StorageInterface : pro::facade_builder
-    ::add_convention<WeakMemInit, 
-                     std::error_code(
-                      const YAML::Node *config)>
-    ::add_convention<WeakMemDevice,
-                     std::error_code(const DeviceType *device_type)>
-    ::add_convention<WeakMemDim,
-                     std::error_code()>
-    ::add_convention<WeakMemFind,
-                     ExpandFindType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandFindType(int64_t, int64_t, uint64_t),
-                     ExpandFindType(int64_t, int32_t, uint64_t),
-                     ExpandFindType(int64_t, int8_t, uint64_t),
-                     ExpandFindType(int64_t, float, uint64_t),
-                     ExpandFindType(int64_t, me_float16_t, uint64_t),
-                     ExpandFindType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemContains,
-                     ExpandContainsType(std::nullptr_t),
-                     ExpandContainsType(int64_t)>
-    ::add_convention<WeakMemAssign,
-                     ExpandAssignType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandAssignType(int64_t, int64_t, uint64_t),
-                     ExpandAssignType(int64_t, int32_t, uint64_t),
-                     ExpandAssignType(int64_t, int8_t, uint64_t),
-                     ExpandAssignType(int64_t, float, uint64_t),
-                     ExpandAssignType(int64_t, me_float16_t, uint64_t),
-                     ExpandAssignType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemAssignValues,
-                     ExpandAssignValuesType(std::nullptr_t, std::nullptr_t),
-                     ExpandAssignValuesType(int64_t, int64_t),
-                     ExpandAssignValuesType(int64_t, int32_t),
-                     ExpandAssignValuesType(int64_t, int8_t),
-                     ExpandAssignValuesType(int64_t, float),
-                     ExpandAssignValuesType(int64_t, me_float16_t),
-                     ExpandAssignValuesType(int64_t, me_bfloat16_t)>
-    ::add_convention<WeakMemAssignScores,
-                     ExpandAssignScoresType(std::nullptr_t, std::nullptr_t),
-                     ExpandAssignScoresType(int64_t, uint64_t)>
-    ::add_convention<WeakMemFindOrInsert,
-                     ExpandFindOrInsertType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandFindOrInsertType(int64_t, int64_t, uint64_t),
-                     ExpandFindOrInsertType(int64_t, int32_t, uint64_t),
-                     ExpandFindOrInsertType(int64_t, int8_t, uint64_t),
-                     ExpandFindOrInsertType(int64_t, float, uint64_t),
-                     ExpandFindOrInsertType(int64_t, me_float16_t, uint64_t),
-                     ExpandFindOrInsertType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemInsertAndEvict,
-                     ExpandInsertAndEvictType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandInsertAndEvictType(int64_t, int64_t, uint64_t),
-                     ExpandInsertAndEvictType(int64_t, int32_t, uint64_t),
-                     ExpandInsertAndEvictType(int64_t, int8_t, uint64_t),
-                     ExpandInsertAndEvictType(int64_t, float, uint64_t),
-                     ExpandInsertAndEvictType(int64_t, me_float16_t, uint64_t),
-                     ExpandInsertAndEvictType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemInsertOrAssign,
-                     ExpandInsertOrAssignType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandInsertOrAssignType(int64_t, int64_t, uint64_t),
-                     ExpandInsertOrAssignType(int64_t, int32_t, uint64_t),
-                     ExpandInsertOrAssignType(int64_t, int8_t, uint64_t),
-                     ExpandInsertOrAssignType(int64_t, float, uint64_t),
-                     ExpandInsertOrAssignType(int64_t, me_float16_t, uint64_t),
-                     ExpandInsertOrAssignType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemAccumOrAssign,
-                     ExpandAccumOrAssignType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandAccumOrAssignType(int64_t, int64_t, uint64_t),
-                     ExpandAccumOrAssignType(int64_t, int32_t, uint64_t),
-                     ExpandAccumOrAssignType(int64_t, int8_t, uint64_t),
-                     ExpandAccumOrAssignType(int64_t, float, uint64_t),
-                     ExpandAccumOrAssignType(int64_t, me_float16_t, uint64_t),
-                     ExpandAccumOrAssignType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemErase,
-                     ExpandEraseType(std::nullptr_t),
-                     ExpandEraseType(int64_t)>
-    ::add_convention<WeakMemEraseIf,
-                     ExpandEraseIfType(std::nullptr_t, std::nullptr_t),
-                     ExpandEraseIfType(int64_t, uint64_t)>
-    ::add_convention<WeakMemClear,
-                     std::error_code()>
-    ::add_convention<WeakMemExportBatch,
-                     ExpandExportBatchType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandExportBatchType(int64_t, int64_t, uint64_t),
-                     ExpandExportBatchType(int64_t, int32_t, uint64_t),
-                     ExpandExportBatchType(int64_t, int8_t, uint64_t),
-                     ExpandExportBatchType(int64_t, float, uint64_t),
-                     ExpandExportBatchType(int64_t, me_float16_t, uint64_t),
-                     ExpandExportBatchType(int64_t, me_bfloat16_t, uint64_t)>
-    ::add_convention<WeakMemExportBatchIf,
-                     ExpandExportBatchIfType(std::nullptr_t, std::nullptr_t, std::nullptr_t),
-                     ExpandExportBatchIfType(int64_t, int64_t, uint64_t),
-                     ExpandExportBatchIfType(int64_t, int32_t, uint64_t),
-                     ExpandExportBatchIfType(int64_t, int8_t, uint64_t),
-                     ExpandExportBatchIfType(int64_t, float, uint64_t),
-                     ExpandExportBatchIfType(int64_t, me_float16_t, uint64_t),
-                     ExpandExportBatchIfType(int64_t, me_bfloat16_t, uint64_t)>              
-    ::add_convention<WeakMemEmpty,
-                     std::error_code()>
-    ::add_convention<WeakMemSize,
-                     std::error_code()>
-    ::add_convention<WeakMemCapacity,
-                     std::error_code()>
-    ::add_convention<WeakMemReserve,
-                     std::error_code(const std::size_t new_capacity)>
-    ::add_convention<WeakMemSave,
-                     std::error_code(const YAML::Node)>
-    ::add_convention<WeakMemLoad,
-                     std::error_code(const YAML::Node)>
-    ::build {};  // clang-format on
+  ::add_convention<WeakMemInit, std::error_code(const YAML::Node &config)>
+  ::add_convention<WeakMemDevice,
+                   std::error_code(const DeviceType &device_type)>
+  ::add_convention<WeakMemDim, std::error_code()>
+  ::add_convention<WeakMemFind,
+                   ExpandFindType(int64_t, int64_t, uint64_t),
+                   ExpandFindType(int64_t, int32_t, uint64_t),
+                   ExpandFindType(int64_t, int8_t, uint64_t),
+                   ExpandFindType(int64_t, float, uint64_t),
+                   ExpandFindType(int64_t, me_float16_t, uint64_t),
+                   ExpandFindType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandFindType(uint64_t, int64_t, uint64_t),
+                   ExpandFindType(uint64_t, int32_t, uint64_t),
+                   ExpandFindType(uint64_t, int8_t, uint64_t),
+                   ExpandFindType(uint64_t, float, uint64_t),
+                   ExpandFindType(uint64_t, me_float16_t, uint64_t),
+                   ExpandFindType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemContains,
+                   ExpandContainsType(int64_t),
+                   ExpandContainsType(uint64_t)>
+  ::add_convention<WeakMemAssign,
+                   ExpandAssignType(int64_t, int64_t, uint64_t),
+                   ExpandAssignType(int64_t, int32_t, uint64_t),
+                   ExpandAssignType(int64_t, int8_t, uint64_t),
+                   ExpandAssignType(int64_t, float, uint64_t),
+                   ExpandAssignType(int64_t, me_float16_t, uint64_t),
+                   ExpandAssignType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandAssignType(uint64_t, int64_t, uint64_t),
+                   ExpandAssignType(uint64_t, int32_t, uint64_t),
+                   ExpandAssignType(uint64_t, int8_t, uint64_t),
+                   ExpandAssignType(uint64_t, float, uint64_t),
+                   ExpandAssignType(uint64_t, me_float16_t, uint64_t),
+                   ExpandAssignType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemAssignValues,
+                   ExpandAssignValuesType(int64_t, int64_t),
+                   ExpandAssignValuesType(int64_t, int32_t),
+                   ExpandAssignValuesType(int64_t, int8_t),
+                   ExpandAssignValuesType(int64_t, float),
+                   ExpandAssignValuesType(int64_t, me_float16_t),
+                   ExpandAssignValuesType(int64_t, me_bfloat16_t),
+                   ExpandAssignValuesType(uint64_t, int64_t),
+                   ExpandAssignValuesType(uint64_t, int32_t),
+                   ExpandAssignValuesType(uint64_t, int8_t),
+                   ExpandAssignValuesType(uint64_t, float),
+                   ExpandAssignValuesType(uint64_t, me_float16_t),
+                   ExpandAssignValuesType(uint64_t, me_bfloat16_t)>
+  ::add_convention<WeakMemAssignScores,
+                   ExpandAssignScoresType(int64_t, uint64_t),
+                   ExpandAssignScoresType(uint64_t, uint64_t)>
+  ::add_convention<WeakMemFindOrInsert,
+                   ExpandFindOrInsertType(int64_t, int64_t, uint64_t),
+                   ExpandFindOrInsertType(int64_t, int32_t, uint64_t),
+                   ExpandFindOrInsertType(int64_t, int8_t, uint64_t),
+                   ExpandFindOrInsertType(int64_t, float, uint64_t),
+                   ExpandFindOrInsertType(int64_t, me_float16_t, uint64_t),
+                   ExpandFindOrInsertType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, int64_t, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, int32_t, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, int8_t, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, float, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, me_float16_t, uint64_t),
+                   ExpandFindOrInsertType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemInsertAndEvict,
+                   ExpandInsertAndEvictType(int64_t, int64_t, uint64_t),
+                   ExpandInsertAndEvictType(int64_t, int32_t, uint64_t),
+                   ExpandInsertAndEvictType(int64_t, int8_t, uint64_t),
+                   ExpandInsertAndEvictType(int64_t, float, uint64_t),
+                   ExpandInsertAndEvictType(int64_t, me_float16_t, uint64_t),
+                   ExpandInsertAndEvictType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, int64_t, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, int32_t, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, int8_t, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, float, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, me_float16_t, uint64_t),
+                   ExpandInsertAndEvictType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemInsertOrAssign,
+                   ExpandInsertOrAssignType(int64_t, int64_t, uint64_t),
+                   ExpandInsertOrAssignType(int64_t, int32_t, uint64_t),
+                   ExpandInsertOrAssignType(int64_t, int8_t, uint64_t),
+                   ExpandInsertOrAssignType(int64_t, float, uint64_t),
+                   ExpandInsertOrAssignType(int64_t, me_float16_t, uint64_t),
+                   ExpandInsertOrAssignType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, int64_t, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, int32_t, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, int8_t, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, float, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, me_float16_t, uint64_t),
+                   ExpandInsertOrAssignType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemAccumOrAssign,
+                   ExpandAccumOrAssignType(int64_t, int64_t, uint64_t),
+                   ExpandAccumOrAssignType(int64_t, int32_t, uint64_t),
+                   ExpandAccumOrAssignType(int64_t, int8_t, uint64_t),
+                   ExpandAccumOrAssignType(int64_t, float, uint64_t),
+                   ExpandAccumOrAssignType(int64_t, me_float16_t, uint64_t),
+                   ExpandAccumOrAssignType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, int64_t, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, int32_t, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, int8_t, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, float, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, me_float16_t, uint64_t),
+                   ExpandAccumOrAssignType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemErase,
+                   ExpandEraseType(int64_t),
+                   ExpandEraseType(uint64_t)>
+  ::add_convention<WeakMemEraseIf,
+                   ExpandEraseIfType(int64_t, uint64_t),
+                   ExpandEraseIfType(uint64_t, uint64_t)>
+  ::add_convention<WeakMemClear,
+                   std::error_code()>
+  ::add_convention<WeakMemExportBatch,
+                   ExpandExportBatchType(int64_t, int64_t, uint64_t),
+                   ExpandExportBatchType(int64_t, int32_t, uint64_t),
+                   ExpandExportBatchType(int64_t, int8_t, uint64_t),
+                   ExpandExportBatchType(int64_t, float, uint64_t),
+                   ExpandExportBatchType(int64_t, me_float16_t, uint64_t),
+                   ExpandExportBatchType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandExportBatchType(uint64_t, int64_t, uint64_t),
+                   ExpandExportBatchType(uint64_t, int32_t, uint64_t),
+                   ExpandExportBatchType(uint64_t, int8_t, uint64_t),
+                   ExpandExportBatchType(uint64_t, float, uint64_t),
+                   ExpandExportBatchType(uint64_t, me_float16_t, uint64_t),
+                   ExpandExportBatchType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemExportBatchIf,
+                   ExpandExportBatchIfType(int64_t, int64_t, uint64_t),
+                   ExpandExportBatchIfType(int64_t, int32_t, uint64_t),
+                   ExpandExportBatchIfType(int64_t, int8_t, uint64_t),
+                   ExpandExportBatchIfType(int64_t, float, uint64_t),
+                   ExpandExportBatchIfType(int64_t, me_float16_t, uint64_t),
+                   ExpandExportBatchIfType(int64_t, me_bfloat16_t, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, int64_t, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, int32_t, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, int8_t, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, float, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, me_float16_t, uint64_t),
+                   ExpandExportBatchIfType(uint64_t, me_bfloat16_t, uint64_t)>
+  ::add_convention<WeakMemEmpty, std::error_code()>
+  ::add_convention<WeakMemSize, std::error_code()>
+  ::add_convention<WeakMemCapacity, std::error_code()>
+  ::add_convention<WeakMemReserve,
+                   std::error_code(const std::size_t new_capacity)>
+  ::add_convention<WeakMemSave, std::error_code(const YAML::Node &config)>
+  ::add_convention<WeakMemLoad, std::error_code(const YAML::Node &config)>
+  ::build {};
+// NOLINTEND
+// clang-format on
 
 #undef ExpandFindType
 #undef ExpandContainsType

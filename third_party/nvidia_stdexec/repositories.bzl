@@ -7,5 +7,5 @@ def nvidia_stdexec_repo():
         name = "stdexec",
         remote = "https://github.com/NVIDIA/stdexec.git",
         branch = "main",
-        build_file = "//third_party/nvidia_stdexec:nvidia_stdexec.BUILD",
+        build_file = "//third_party/nvidia_stdexec:BUILD",
     )

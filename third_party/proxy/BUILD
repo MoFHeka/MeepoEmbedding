@@ -10,6 +10,6 @@ cc_library(
     hdrs = [
         "proxy.h",
     ],
-    include = [""],
+    includes = [""],
     visibility = ["//visibility:public"],
 )

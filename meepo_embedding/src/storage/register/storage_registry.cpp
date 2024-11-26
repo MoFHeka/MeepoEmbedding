@@ -16,24 +16,49 @@ limitations under the License.
 
 #include "meepo_embedding/include/storage/register/storage_registry.hpp"
 
+#include <memory>
+#include <string>
+#include <string_view>
+#include <utility>
+
 #include "meepo_embedding/include/common/strings.h"
 
 namespace meepo_embedding {
 namespace storage {
 namespace registry {
 
-void registry::StorageRegistry::DeferRegister(
-  const DeviceType&& device_type, const DataType&& key_dtype,
-  const DataType&& value_dtype, const DataType&& score_dtype,
-  const std::string&& cls_name, pro::proxy<StorageInterface>(create_fn)()) {
+void StorageRegistry::DeferRegister(const DeviceType device_type,
+                                    const std::string_view cls_name,
+                                    pro::proxy<StorageInterface>(create_fn)()) {
   auto constructor = std::make_unique<StorageFactoryImpl>(create_fn);
-  auto key = meepo_embedding::strings::CreateStorageFactoryKey(
-    std::move(device_type), std::move(cls_name));
+  auto key =
+    meepo_embedding::strings::CreateStorageFactoryKey(device_type, cls_name);
   DeferRegistrationData_.insert(std::make_pair(key, std::move(constructor)));
 }
 
-pro::proxy<StorageInterface> registry::StorageRegistry::LookUp(
-  const std::string&& factory_key) {
+void StorageRegistry::DeferRegister(const std::string_view device,
+                                    const std::string_view cls_name,
+                                    pro::proxy<StorageInterface>(create_fn)()) {
+  auto constructor = std::make_unique<StorageFactoryImpl>(create_fn);
+  auto key =
+    meepo_embedding::strings::CreateStorageFactoryKey(device, cls_name);
+  DeferRegistrationData_.insert(std::make_pair(key, std::move(constructor)));
+}
+
+void StorageRegistry::DeferRegister(const DeviceType device_type,
+                                    const DataType key_dtype,
+                                    const DataType value_dtype,
+                                    const DataType score_dtype,
+                                    const std::string_view cls_name,
+                                    pro::proxy<StorageInterface>(create_fn)()) {
+  auto constructor = std::make_unique<StorageFactoryImpl>(create_fn);
+  auto key = meepo_embedding::strings::CreateStorageFactoryKey(
+    device_type, key_dtype, value_dtype, score_dtype, cls_name);
+  DeferRegistrationData_.insert(std::make_pair(key, std::move(constructor)));
+}
+
+pro::proxy<StorageInterface> StorageRegistry::LookUp(
+  const std::string& factory_key) {
   auto pair_found = DeferRegistrationData_.find(factory_key);
   if (pair_found == DeferRegistrationData_.end()) {
     return pro::proxy<StorageInterface>();
@@ -41,6 +66,48 @@ pro::proxy<StorageInterface> registry::StorageRegistry::LookUp(
     return pair_found->second->Create();
   }
 }
+
+pro::proxy<StorageInterface> StorageRegistry::LookUp(
+  const DeviceType device_type, const std::string_view cls_name) {
+  auto factory_key =
+    meepo_embedding::strings::CreateStorageFactoryKey(device_type, cls_name);
+  auto pair_found = DeferRegistrationData_.find(factory_key);
+  if (pair_found == DeferRegistrationData_.end()) {
+    return pro::proxy<StorageInterface>();
+  } else {
+    return pair_found->second->Create();
+  }
+}
+
+pro::proxy<StorageInterface> StorageRegistry::LookUp(
+  const std::string_view device, const std::string_view cls_name) {
+  auto factory_key =
+    meepo_embedding::strings::CreateStorageFactoryKey(device, cls_name);
+  auto pair_found = DeferRegistrationData_.find(factory_key);
+  if (pair_found == DeferRegistrationData_.end()) {
+    return pro::proxy<StorageInterface>();
+  } else {
+    return pair_found->second->Create();
+  }
+}
+
+pro::proxy<StorageInterface> StorageRegistry::LookUp(
+  const DeviceType device_type,
+  const DataType key_dtype,
+  const DataType value_dtype,
+  const DataType score_dtype,
+  const std::string_view cls_name) {
+  auto factory_key = meepo_embedding::strings::CreateStorageFactoryKey(
+    device_type, key_dtype, value_dtype, score_dtype, cls_name);
+  auto pair_found = DeferRegistrationData_.find(factory_key);
+  if (pair_found == DeferRegistrationData_.end()) {
+    return pro::proxy<StorageInterface>();
+  } else {
+    return pair_found->second->Create();
+  }
+}
+
+std::size_t StorageRegistry::Size() { return DeferRegistrationData_.size(); }
 
 pro::proxy<StorageInterface> StorageRegistry::StorageFactoryImpl::Create() {
   return (*create_func_)();

@@ -24,7 +24,6 @@ limitations under the License.
 
 #include "meepo_embedding/include/common/data_type.h"
 #include "meepo_embedding/include/common/device_base.h"
-#include "meepo_embedding/include/third_party/magic_enum.hpp"
 
 namespace meepo_embedding {
 namespace strings {
@@ -36,7 +35,7 @@ template <typename... Args>
 std::string StrFormat(std::string_view rt_fmt_str, Args&&... args);
 
 template <typename... Args>
-void StrAppend(std::string &buffer, Args&&... args);
+void StrAppend(std::string& buffer, Args&&... args);
 
 template <typename T>
   requires std::integral<T>
@@ -44,17 +43,23 @@ std::string HexString(T value);
 
 std::string HumanReadableNumBytes(std::int64_t num_bytes);
 
-const std::string CreateStorageFactoryKey(const std::string& device,
-                                          const std::string& key_dtype,
-                                          const std::string& value_dtype,
-                                          const std::string& score_dtype,
-                                          const std::string& cls_name);
+const std::string CreateStorageFactoryKey(const DeviceType device_type,
+                                          const DataType key_dtype,
+                                          const DataType value_dtype,
+                                          const DataType score_dtype,
+                                          const std::string_view cls_name);
 
-const std::string CreateStorageFactoryKey(const DeviceType&& device_type,
-                                          const DataType&& key_dtype,
-                                          const DataType&& value_dtype,
-                                          const DataType&& score_dtype,
-                                          const std::string& cls_name);
+const std::string CreateStorageFactoryKey(const std::string_view device,
+                                          const std::string_view key_dtype,
+                                          const std::string_view value_dtype,
+                                          const std::string_view score_dtype,
+                                          const std::string_view cls_name);
+
+const std::string CreateStorageFactoryKey(const std::string_view device,
+                                          const std::string_view cls_name);
+
+const std::string CreateStorageFactoryKey(const DeviceType device_type,
+                                          const std::string_view cls_name);
 }  // namespace strings
 }  // namespace meepo_embedding
 

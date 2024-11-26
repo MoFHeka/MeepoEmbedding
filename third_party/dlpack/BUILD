@@ -10,6 +10,6 @@ cc_library(
     hdrs = [
         "include/dlpack/dlpack.h",
     ],
-    include = ["include"],
+    includes = ["include"],
     visibility = ["//visibility:public"],
 )

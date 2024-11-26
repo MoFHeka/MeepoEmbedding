@@ -59,11 +59,36 @@ class StorageRegistry {
  public:
   ~StorageRegistry() {}
 
-  void DeferRegister(const DeviceType&& device_type,
-                     const std::string&& cls_name,
+  void DeferRegister(const DeviceType device_type,
+                     const std::string_view cls_name,
                      pro::proxy<StorageInterface>(create_fn)());
 
-  pro::proxy<StorageInterface> LookUp(const std::string&& factory_key);
+  void DeferRegister(const std::string_view device,
+                     const std::string_view cls_name,
+                     pro::proxy<StorageInterface>(create_fn)());
+
+  void DeferRegister(const DeviceType device_type,
+                     const DataType key_dtype,
+                     const DataType value_dtype,
+                     const DataType score_dtype,
+                     const std::string_view cls_name,
+                     pro::proxy<StorageInterface>(create_fn)());
+
+  pro::proxy<StorageInterface> LookUp(const std::string& factory_key);
+
+  pro::proxy<StorageInterface> LookUp(const DeviceType device_type,
+                                      const std::string_view cls_name);
+
+  pro::proxy<StorageInterface> LookUp(const std::string_view device,
+                                      const std::string_view cls_name);
+
+  pro::proxy<StorageInterface> LookUp(const DeviceType device_type,
+                                      const DataType key_dtype,
+                                      const DataType value_dtype,
+                                      const DataType score_dtype,
+                                      const std::string_view cls_name);
+
+  std::size_t Size();
 
   static StorageRegistry* Global() {
     static registry::StorageRegistry me_global_registry;
@@ -71,8 +96,8 @@ class StorageRegistry {
   }
 };
 
-// REGISTER_STORAGE_IMPL_2, with a unique 'ctr' as the first argument.
-#define REGISTER_STORAGE_IMPL_3(                                             \
+// REGISTER_STORAGE_IMPL_1, with a unique 'ctr' as the first argument.
+#define REGISTER_STORAGE_IMPL_1(                                             \
   ctr, device_type, ktype, vtype, stype, cls_name, cls_type)                 \
   static meepo_embedding::storage::InitOnStartupMarker const storage_##ctr   \
     ME_ATTRIBUTE_UNUSED =                                                    \
@@ -92,29 +117,92 @@ class StorageRegistry {
         return meepo_embedding::storage::InitOnStartupMarker{};              \
       })();
 
-#define REGISTER_STORAGE_IMPL_2(...) \
-  ME_NEW_ID_FOR_INIT(REGISTER_STORAGE_IMPL_3, __VA_ARGS__)
+#define REGISTER_STORAGE_IMPL_0(...) \
+  ME_NEW_ID_FOR_INIT(REGISTER_STORAGE_IMPL_1, __VA_ARGS__)
 
-#define REGISTER_STORAGE_IMPL(device_type, ktype, vtype, stype, ...)           \
-  static_assert(std::is_default_constructible<__VA_ARGS__>::value,             \
+#define REGISTER_STORAGE_IMPL(device_type, ktype, vtype, stype, cls)           \
+  static_assert(std::is_default_constructible<cls>::value,                     \
                 "Meepo Embedding storage backend must has a default "          \
                 "constructor with empty parameters!");                         \
-  static_assert(std::is_same_v(std::decay_t<decltype(device_type)>,            \
-                               meepo_embedding::DeviceType),                   \
+  static_assert(std::is_same_v<std::decay_t<decltype(device_type)>,            \
+                               meepo_embedding::DeviceType>,                   \
                 "The first parameter of REGISTER_STORAGE macro should be the " \
                 "type meepo_embedding::DeviceType.");                          \
   static_assert(                                                               \
-    std::is_same_v(std::decay_t<decltype(ktype)>, meepo_embedding::DataType)   \
-      && std::is_same_v(std::decay_t<decltype(vtype)>,                         \
-                        meepo_embedding::DataType)                             \
-      && std::is_same_v(std::decay_t<decltype(stype)>,                         \
-                        meepo_embedding::DataType),                            \
+    std::is_same_v<std::decay_t<decltype(ktype)>, meepo_embedding::DataType>   \
+      && std::is_same_v<std::decay_t<decltype(vtype)>,                         \
+                        meepo_embedding::DataType>                             \
+      && std::is_same_v<std::decay_t<decltype(stype)>,                         \
+                        meepo_embedding::DataType>,                            \
     "The second, third and fourth parameters of REGISTER_STORAGE macro "       \
     "should be the type meepo_embedding::DataType.");                          \
-  REGISTER_STORAGE_IMPL_2(                                                     \
-    device_type, ktype, vtype, stype, ME_TYPE_NAME(__VA_ARGS__), __VA_ARGS__)
+  REGISTER_STORAGE_IMPL_0(                                                     \
+    device_type, ktype, vtype, stype, ME_TYPE_NAME(cls), cls)
 
-#define REGISTER_STORAGE(...) REGISTER_STORAGE_IMPL(__VA_ARGS__)
+// REGISTER_STORAGE_MINI_IMPL_1, with a unique 'ctr' as the first argument.
+#define REGISTER_STORAGE_MINI_IMPL_1(ctr, device_type, cls_name, cls_type)   \
+  static meepo_embedding::storage::InitOnStartupMarker const storage_##ctr   \
+    ME_ATTRIBUTE_UNUSED =                                                    \
+      ME_INIT_ON_STARTUP_IF(ME_SHOULD_REGISTER_STORAGE(cls_name)) << ([]() { \
+        ::meepo_embedding::storage::registry::StorageRegistry::Global()      \
+          ->DeferRegister(                                                   \
+            device_type,                                                     \
+            cls_name,                                                        \
+            []() -> pro::proxy<meepo_embedding::storage::StorageInterface> { \
+              return pro::make_proxy<                                        \
+                meepo_embedding::storage::StorageInterface,                  \
+                cls_type>();                                                 \
+            });                                                              \
+        return meepo_embedding::storage::InitOnStartupMarker{};              \
+      })();
+
+#define REGISTER_STORAGE_MINI_IMPL_0(...) \
+  ME_NEW_ID_FOR_INIT(REGISTER_STORAGE_MINI_IMPL_1, __VA_ARGS__)
+
+#define REGISTER_STORAGE_MINI_IMPL(device_type, cls)                           \
+  static_assert(std::is_default_constructible<cls>::value,                     \
+                "Meepo Embedding storage backend must has a default "          \
+                "constructor with empty parameters!");                         \
+  static_assert(std::is_same_v<std::decay_t<decltype(device_type)>,            \
+                               meepo_embedding::DeviceType>,                   \
+                "The first parameter of REGISTER_STORAGE macro should be the " \
+                "type meepo_embedding::DeviceType.");                          \
+  REGISTER_STORAGE_MINI_IMPL_0(device_type, ME_TYPE_NAME(cls), cls)
+
+#define GET_ARG_COUNT(_0, _1, _2, _3, _4, _5, count, ...) count
+// When there is no content after ##, the space before is deleted
+#define SELECT_MACRO(_0, _1, _2, _3, _4, _5, ...) \
+  GET_ARG_COUNT(, ##__VA_ARGS__, _5, _4, _3, _2, _1, _0)
+#define REGISTER_STORAGE(...)       \
+  SELECT_MACRO(_REGISTER_STORAGE_0, \
+               _REGISTER_STORAGE_1, \
+               _REGISTER_STORAGE_2, \
+               _REGISTER_STORAGE_3, \
+               _REGISTER_STORAGE_4, \
+               _REGISTER_STORAGE_5, \
+               ##__VA_ARGS__)       \
+  (__VA_ARGS__)
+
+#define _REGISTER_STORAGE_0(cls) \
+  static_assert(                 \
+    false, "Macro REGISTER_STORAGE must pass at least one class declaration.")
+
+#define _REGISTER_STORAGE_1(cls) \
+  REGISTER_STORAGE_MINI_IMPL(meepo_embedding::DeviceType::CPU, cls)
+
+#define _REGISTER_STORAGE_2(device_type, cls) \
+  REGISTER_STORAGE_MINI_IMPL(device_type, cls)
+
+#define _REGISTER_STORAGE_3(cls) \
+  static_assert(false,           \
+                "Macro REGISTER_STORAGE does not support three arguments.")
+
+#define _REGISTER_STORAGE_4(cls) \
+  static_assert(false,           \
+                "Macro REGISTER_STORAGE does not support four arguments.")
+
+#define _REGISTER_STORAGE_5(device_type, ktype, vtype, stype, cls) \
+  REGISTER_STORAGE_IMPL(device_type, ktype, vtype, stype, cls)
 
 }  // namespace registry
 }  // namespace storage

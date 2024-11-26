@@ -22,7 +22,7 @@ module(
 )
 
 # setting skylib
-bazel_dep(name = "bazel_skylib", version = "1.4.2")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 # setting cuda toolchain
 bazel_dep(name = "rules_cuda", version = "0.2.1")
@@ -37,8 +37,27 @@ use_repo(cuda, "local_cuda")
 stdexec_deps = use_extension("//third_party/nvidia_stdexec:extensions.bzl", "nvidia_stdexec_dep")
 use_repo(stdexec_deps, "stdexec")
 
+# setting proxy for next generation polymorphism in C++
+proxy_deps = use_extension("//third_party/proxy:extensions.bzl", "proxy_dep")
+use_repo(proxy_deps, "proxy")
+
+# setting dlpack for tensor packaging
+dlpack_deps = use_extension("//third_party/dlpack:extensions.bzl", "dlpack_dep")
+use_repo(dlpack_deps, "dlpack")
+
 # setting yaml-cpp as config parser with different backend
 bazel_dep(name = "yaml-cpp", version = "0.8.0")
 
 # setting quill for logging
 bazel_dep(name = "quill", version = "6.0.0")
+
+# setting magic_enum for static reflection of enum
+bazel_dep(name = "magic_enum", version = "0.9.6")
+
+# setting googletest for cpp testing
+bazel_dep(name = "googletest", version = "1.15.2")
+
+register_toolchains(
+    "@local_cuda//toolchain:nvcc-local-toolchain",
+    "@local_cuda//toolchain/clang:clang-local-toolchain",
+)
